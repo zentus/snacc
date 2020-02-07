@@ -50,103 +50,14 @@ const nickOption = cli.getOption('nick')
 const TYPE = (serveOption.passed && 'server') || (connectOption.passed && 'client')
 const HOST = (connectOption.passed && hostOption.passed && hostOption.input) || 'localhost'
 const PORT = (portOption.passed && portOption.input) || '5000'
+const NICK = nickOption.passed && nickOption.input
 
 if (!TYPE) return console.error('Pass either --serve or --connect flag')
 
 if (TYPE === 'client') {
-	(async () => {
-		const Client = new StateMachine({
-			initialState: {
-				User: null
-			},
-			// afterUpdate: state => console.log('nextState', state),
-			setUser: User => Client.setState({ User }),
-			exit: (rl, message) => {
-				Readline.clearLine(process.stdout, 0)
-				Readline.cursorTo(process.stdout, 0)
-				if (message && message.text) console.log(chalk.bold.red(message.text))
-				rl.close()
-			}
-		})
-
-		const nickname = nickOption.input || await waitForNickname()
-		const prefix = nickname => chalk.bold(`${nickname}: `)
-
-		const reconnector = reconnect(async (stream) => {
-			const rl = Readline.createInterface({
-				input: process.stdin,
-				output: process.stdout
-			})
-
-			const peer = duplexEmitter(stream)
-
-			rl.setPrompt(prefix(nickname), prefix(nickname).length)
-			rl.prompt()
-
-			peer.emit('user-connected', nickname)
-
-			peer.on('notification', message => {
-				if (message.type === 'userConnected' && message.user && message.user.nickname === nickname) {
-					return Client.setUser(message.user)
-				}
-
-				if (message.type === 'nicknameTaken') {
-					return Client.exit(rl, message)
-				}
-
-				Readline.clearLine(process.stdout)
-				Readline.cursorTo(process.stdout, 0)
-				rl.pause()
-				console.log(chalk.bold.green(message.text))
-				rl.resume()
-				rl.prompt(true)
-			})
-
-			peer.on('message-from-server', message => {
-				Readline.clearLine(process.stdout)
-				Readline.cursorTo(process.stdout, 0)
-				rl.pause()
-				console.log(prefix(message.nickname) + message.text)
-				rl.resume()
-				rl.prompt(true)
-			})
-
-			rl.on('close', () => {
-				reconnector.reconnect = false
-				stream.end()
-				process.exit()
-			})
-
-			rl.on('line', text => {
-				if (text.trim() === '/exit') {
-					return Client.exit(rl)
-				}
-
-				if (text.trim() === '') {
-					Readline.clearLine(process.stdout, 0)
-					Readline.cursorTo(process.stdout, 0)
-					rl.pause()
-					console.log('Empty messages are not allowed')
-					rl.resume()
-					rl.prompt(true)
-					return
-				}
-
-				rl.pause()
-				peer.emit('message-to-server', {
-					nickname,
-					text
-				})
-				rl.resume()
-				rl.prompt()
-			})
-		})
-		.connect(PORT, HOST)
-	})()
-
-	return
+	const startClient = require('./ink-app/dist').default
+	return startClient(HOST, PORT, NICK)
 }
-
 
 // Server
 if (TYPE === 'server') {
@@ -181,7 +92,6 @@ if (TYPE === 'server') {
 			peer,
 			status: null
 		}),
-		// setUserStatus: User =>
 		broadcast: (e, payload, usersFilter) => {
 			Server.state.users
 				.filter(usersFilter ? usersFilter : u => u)
@@ -211,7 +121,9 @@ if (TYPE === 'server') {
 
 			Server.userDisconnected(User)
 			Server.broadcast('notification', {
-				text: `${User.nickname} has disconnected!`
+				text: `${User.nickname} has disconnected!`,
+				users: Server.state.users,
+				type: 'userDisconnected'
 			}, user => user.id !== User.id)
 		})
 
@@ -229,21 +141,22 @@ if (TYPE === 'server') {
 
 			Server.broadcast('notification', {
 				text: `${User.nickname} has connected!`,
-				user: {
+				User: {
 					id: User.id,
 					nickname: User.nickname
 				},
+				users: Server.state.users.map(user => ({
+					id: user.id,
+					nickname: user.nickname
+				})),
 				type: 'userConnected'
 			})
 		})
 
 		peer.on('message-to-server', message => {
 			const { nickname, text } = message
-			// const command = findCommand(message)
 
-			const usersToSendTo = Server.state.users.filter(user => user.nickname !== nickname)
-
-			usersToSendTo.forEach(user => {
+			Server.state.users.forEach(user => {
 				user.peer.emit('message-from-server', message)
 			})
 		})
