@@ -27,6 +27,8 @@ var _config = _interopRequireDefault(require("./config"));
 
 var _debounce = _interopRequireDefault(require("debounce"));
 
+var _nodeNotifier = _interopRequireDefault(require("node-notifier"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -77,7 +79,7 @@ const getWindow = () => {
     width,
     height
   });
-  const maxRows = safeHeight - 1;
+  const maxRows = safeHeight - 2;
   const maxColumns = safeWidth;
   return {
     width,
@@ -85,9 +87,7 @@ const getWindow = () => {
     safeHeight,
     safeWidth,
     maxRows,
-    maxColumns // userListWidth,
-    // messagesWidth
-
+    maxColumns
   };
 };
 
@@ -135,6 +135,8 @@ class App extends _react.Component {
       state,
       addMessage
     } = this;
+    const User = state.User;
+    const needReconnect = state.needReconnect;
     const {
       ChatConnection,
       connectToServer,
@@ -145,19 +147,20 @@ class App extends _react.Component {
       if (!e.messageText) return;
 
       if (e.messageText.startsWith('/nick ')) {
+        if (User) return false;
         const split = e.messageText.split(' ');
         const nickname = split[1];
         if (!nickname) return;
         return connectToServer(nickname);
       }
 
-      if (!nickname) {
-        return addMessage('Type "/nick yourname" to set a nickname and start chatting', 'system');
+      if (!nickname || needReconnect) {
+        return addMessage('Type "/nick yourname" to connect to server', 'system');
       }
 
       emitMessage({
         text: e.messageText,
-        nickname
+        User
       });
     };
   }
@@ -189,12 +192,22 @@ class App extends _react.Component {
       }); // this.props.forceUpdateRoot();
     });
     ChatConnection.on('notification', message => {
+      if (message.type === 'nicknameTaken') {
+        this.addMessage(message.text, 'system');
+        this.setState({
+          connected: false,
+          needReconnect: true
+        });
+        return this.props.stopReconnecting();
+      }
+
       if (message.type === 'userConnected' && message.User && message.User.nickname === this.props.nickname) {
         this.addMessage(`Welcome ${message.User.nickname}. Your ID is ${message.User.id}`, 'system');
         return this.setState({
           users: message.users,
           User: message.User,
-          connected: true
+          connected: true,
+          needReconnect: false
         });
       }
 
@@ -210,17 +223,22 @@ class App extends _react.Component {
         });
       }
 
-      if (message.type === 'nicknameTaken') {
-        return this.setState({
-          connected: false
-        });
-      }
-
       this.addMessage(message.text, 'system');
     });
     ChatConnection.on('message-from-server', message => {
-      this.addMessage(message.text, message.nickname);
+      if (message.text.includes(`@${this.props.nickname}`)) {
+        _nodeNotifier.default.notify({
+          title: `@${message.User.nickname} mentioned you`,
+          message: message.text
+        });
+      }
+
+      this.addMessage(message.text, message.User.nickname);
     });
+  }
+
+  componentWillUnmount() {
+    this.props.onExit();
   }
 
   render() {
@@ -234,11 +252,6 @@ class App extends _react.Component {
     } = this.state;
     const userListWidth = getUserListWidth(users);
     const messagesWidth = this.state.maxColumns - userListWidth;
-
-    const percentToRows = (total, percent) => parseInt(total / 100 * percent, 10); // {/*<Box><Color red>Connected: {this.state.connected ? 'Yes' : 'No'} {this.state.width} {this.state.height}</Color></Box>*/}
-    // {/*<Header height={config.headerHeight} messagesWidth={messagesWidth} userListWidth={userListWidth} maxRows={maxRows}/>*/}
-
-
     return _react.default.createElement(_react.default.Fragment, null, _react.default.createElement(_ink.Box, {
       flexDirection: "column",
       height: safeHeight,
@@ -247,13 +260,16 @@ class App extends _react.Component {
     }, _react.default.createElement(_ink.Box, null, _react.default.createElement(_messages.default, {
       messages: messages,
       maxRows: maxRows,
+      height: maxRows,
       textWrap: "truncate",
       width: messagesWidth,
       paddingRight: 1
     }), _react.default.createElement(_userList.default, {
       users: users,
       width: userListWidth
-    })), _react.default.createElement(_ink.Box, null, _react.default.createElement(_reactFinalForm.Form, {
+    })), _react.default.createElement(_ink.Box, {
+      marginTop: 1
+    }, _react.default.createElement(_reactFinalForm.Form, {
       onSubmit: this.handleFormSubmit()
     }, ({
       form,

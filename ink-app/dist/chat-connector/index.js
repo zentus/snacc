@@ -7,7 +7,7 @@ exports.default = void 0;
 
 var _react = _interopRequireWildcard(require("react"));
 
-var _duplexEmitter = _interopRequireDefault(require("duplex-emitter"));
+var _duplexEmitter = _interopRequireDefault(require("../../../duplex-emitter"));
 
 var _reconnect = _interopRequireDefault(require("reconnect"));
 
@@ -24,6 +24,10 @@ class ChatConnector extends _react.Component {
     super();
     this.state = {
       nickname: null,
+      Peer: null,
+      Stream: null,
+      Reconnector: null,
+      stopReconnecting: null,
       ChatConnection: new _events.default()
     };
     this.connectToServer = this.connectToServer.bind(this);
@@ -41,13 +45,19 @@ class ChatConnector extends _react.Component {
     const setState = this.setState.bind(this);
     const Reconnector = (0, _reconnect.default)(Stream => {
       const Peer = (0, _duplexEmitter.default)(Stream);
+
+      const stopReconnecting = () => {
+        Reconnector.reconnect = false;
+      };
+
       setState({
         nickname,
         Peer,
         Stream,
-        Reconnector
+        Reconnector,
+        stopReconnecting
       });
-      Peer.emit('user-connected', nickname);
+      Peer.emit('user-connect', nickname);
       Peer.on('notification', message => {
         ChatConnection.emit('notification', message);
       });
@@ -63,7 +73,8 @@ class ChatConnector extends _react.Component {
       connectToServer: this.connectToServer,
       setNickname: this.setNickname,
       nickname: this.state.nickname,
-      emitMessage: this.emitMessage
+      emitMessage: this.emitMessage,
+      stopReconnecting: this.state.stopReconnecting
     });
   }
 

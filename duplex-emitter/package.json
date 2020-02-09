@@ -1,0 +1,75 @@
+{
+  "_args": [
+    [
+      "duplex-emitter@2.1.2",
+      "/Users/zentus/code/home/tcp-chat"
+    ]
+  ],
+  "_from": "duplex-emitter@2.1.2",
+  "_id": "duplex-emitter@2.1.2",
+  "_inBundle": false,
+  "_integrity": "sha1-EMnPKxOn2//2JklV3KRTlujn214=",
+  "_location": "/duplex-emitter",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "version",
+    "registry": true,
+    "raw": "duplex-emitter@2.1.2",
+    "name": "duplex-emitter",
+    "escapedName": "duplex-emitter",
+    "rawSpec": "2.1.2",
+    "saveSpec": null,
+    "fetchSpec": "2.1.2"
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "https://registry.npmjs.org/duplex-emitter/-/duplex-emitter-2.1.2.tgz",
+  "_spec": "2.1.2",
+  "_where": "/Users/zentus/code/home/tcp-chat",
+  "author": {
+    "name": "pgte"
+  },
+  "bugs": {
+    "url": "https://github.com/pgte/duplex-emitter/issues"
+  },
+  "contributors": [
+    {
+      "name": "Pedro Teixeira"
+    },
+    {
+      "name": "Igor Soarez"
+    }
+  ],
+  "dependencies": {
+    "split": "~0.2.6",
+    "stream-combiner": "0.0.2",
+    "through": "~2.3.4"
+  },
+  "description": "Duplex Event Emitter",
+  "devDependencies": {
+    "tap": "*"
+  },
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "homepage": "https://github.com/pgte/duplex-emitter#readme",
+  "keywords": [
+    "event",
+    "emitter",
+    "stream",
+    "duplex",
+    "remote"
+  ],
+  "license": "MIT",
+  "main": "index.js",
+  "name": "duplex-emitter",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/pgte/duplex-emitter.git"
+  },
+  "scripts": {
+    "test": "tap tests/*.test.js"
+  },
+  "version": "2.1.2"
+}

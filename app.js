@@ -1,5 +1,5 @@
 const net = require('net')
-const duplexEmitter = require('duplex-emitter')
+const duplexEmitter = require('./duplex-emitter')
 const reconnect = require('reconnect')
 const Readline = require('readline')
 const uuidv4 = require('uuid/v4')
@@ -101,40 +101,68 @@ if (TYPE === 'server') {
 		},
 		findUserByNickname: nickname => {
 			return Server.state.users.find(user => user.nickname === nickname)
-		}
+		},
+		getCleanUserList: users => users.map(user => ({
+			id: user.id,
+			nickname: user.nickname
+		})).sort((a, b) => a.nickname > b.nickname ? -1 : 1),
+		isJsonString: string => {
+			try {
+				const jsonParsed = JSON.parse(string)
+
+				return Array.isArray(jsonParsed)
+			} catch (err) {
+				return false
+			}
+		},
+		waitForInitialPackage: async socket => new Promise((resolve, reject) => {
+			socket.on('data', packet => {
+				packet = packet.trim()
+				const isJson = Server.isJsonString(packet)
+				// const [dataEvent, data] = packet
+				resolve({packet, isJson})
+			})
+		})
 	})
 
-	const host = net.createServer()
 
-	host.listen(PORT)
+	const TCP = net.createServer()
 
-	host.once('listening', () => {
+	TCP.listen(PORT)
+
+	TCP.once('listening', () => {
 		console.log('Server listening on port', PORT)
 	})
 
-	host.on('connection', (stream) => {
+	TCP.on('connection', socket => {
+		socket.setEncoding('utf-8')
 		let User
-		const peer = duplexEmitter(stream)
+		let peer = duplexEmitter(socket)
 
-		stream.on('end', () => {
+		peer.on('error', e => {
+			socket.end()
+		})
+
+		socket.on('end', () => {
 			if (!User) return false
 
 			Server.userDisconnected(User)
 			Server.broadcast('notification', {
 				text: `${User.nickname} has disconnected!`,
-				users: Server.state.users,
+				users: Server.getCleanUserList(Server.state.users),
 				type: 'userDisconnected'
 			}, user => user.id !== User.id)
 		})
 
-		peer.on('user-connected', nickname => {
+		peer.on('user-connect', nickname => {
 			const userExists = Server.findUserByNickname(nickname)
 
 			if (userExists) {
-				return peer.emit('notification', {
+				peer.emit('notification', {
 					text: `The nickname "${nickname}" is already in use`,
 					type: 'nicknameTaken'
 				})
+				return socket.end()
 			}
 
 			User = Server.userConnected(peer, nickname)
@@ -145,20 +173,21 @@ if (TYPE === 'server') {
 					id: User.id,
 					nickname: User.nickname
 				},
-				users: Server.state.users.map(user => ({
-					id: user.id,
-					nickname: user.nickname
-				})),
+				users: Server.getCleanUserList(Server.state.users),
 				type: 'userConnected'
 			})
 		})
 
 		peer.on('message-to-server', message => {
-			const { nickname, text } = message
+			if (!User || User.id !== message.User.id || User.nickname !== message.User.nickname) {
+				peer.emit('come-on-man')
+				return socket.end()
+			}
 
-			Server.state.users.forEach(user => {
-				user.peer.emit('message-from-server', message)
+			Server.state.users.forEach(_user => {
+				_user.peer.emit('message-from-server', message)
 			})
 		})
+	// })
 	})
 }

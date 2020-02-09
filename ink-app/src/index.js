@@ -24,7 +24,7 @@ class Index extends Component {
 							{({ isRawModeSupported, setRawMode, stdin }) =>
 								isRawModeSupported ? (
 									<ChatConnector host={this.props.host} port={this.props.port}>
-										{({ChatConnection, connectToServer, emitMessage, nickname, setNickname}) => {
+										{({ChatConnection, connectToServer, emitMessage, nickname, setNickname, stopReconnecting}) => {
 											return <App
 												onExit={exit}
 												setRawMode={setRawMode}
@@ -36,6 +36,7 @@ class Index extends Component {
 												ChatConnection={ChatConnection}
 												forceUpdateRoot={this.forceUpdateRoot}
 												nickFlag={this.props.nickFlag}
+												stopReconnecting={stopReconnecting}
 											/>
 										}}
 									</ChatConnector>

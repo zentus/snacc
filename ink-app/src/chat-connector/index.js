@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import duplexEmitter from 'duplex-emitter'
+import duplexEmitter from '../../../duplex-emitter'
 import reconnect from 'reconnect'
 import EventEmitter from 'events'
 
@@ -9,6 +9,10 @@ class ChatConnector extends Component {
 
 		this.state = {
 			nickname: null,
+			Peer: null,
+			Stream: null,
+			Reconnector: null,
+			stopReconnecting: null,
 			ChatConnection: new EventEmitter()
 		}
 
@@ -29,9 +33,13 @@ class ChatConnector extends Component {
 		const Reconnector = reconnect(Stream => {
 			const Peer = duplexEmitter(Stream)
 
-			setState({ nickname, Peer, Stream, Reconnector })
+			const stopReconnecting = () => {
+				Reconnector.reconnect = false
+			}
 
-			Peer.emit('user-connected', nickname)
+			setState({ nickname, Peer, Stream, Reconnector, stopReconnecting })
+
+			Peer.emit('user-connect', nickname)
 
 			Peer.on('notification', message => {
 				ChatConnection.emit('notification', message)
@@ -50,7 +58,8 @@ class ChatConnector extends Component {
 			connectToServer: this.connectToServer,
 			setNickname: this.setNickname,
 			nickname: this.state.nickname,
-			emitMessage: this.emitMessage
+			emitMessage: this.emitMessage,
+			stopReconnecting: this.state.stopReconnecting
 		})
 	}
 }

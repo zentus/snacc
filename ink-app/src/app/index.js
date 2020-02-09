@@ -9,6 +9,7 @@ import Messages from './messages'
 import UserList from './user-list'
 import config from './config'
 import debounce from 'debounce'
+import notifier from 'node-notifier'
 
 // const Sizer = props => {
 // 	if (Array.isArray(props.children) || !props.children.type) return props.children
@@ -42,7 +43,7 @@ const getWindow = () => {
 	const width = process.stdout.columns
 	const height = process.stdout.rows
 	const {safeWidth, safeHeight} = toSafeSize({width, height})
-	const maxRows = safeHeight - 1
+	const maxRows = safeHeight - 2
 	const maxColumns = safeWidth
 
 	return {
@@ -52,8 +53,6 @@ const getWindow = () => {
 		safeWidth,
 		maxRows,
 		maxColumns
-		// userListWidth,
-		// messagesWidth
 	}
 }
 
@@ -103,11 +102,14 @@ class App extends Component {
 
 	handleFormSubmit(maxRows) {
 		const { props, state, addMessage } = this
+		const User = state.User
+		const needReconnect = state.needReconnect
 		const { ChatConnection, connectToServer, emitMessage, nickname } = props
 
 		return function (e) {
 			if (!e.messageText) return
 			if (e.messageText.startsWith('/nick ')) {
+				if (User) return false
 				const split = e.messageText.split(' ')
 				const nickname = split[1]
 
@@ -116,13 +118,13 @@ class App extends Component {
 				return connectToServer(nickname)
 			}
 
-			if (!nickname) {
-				return addMessage('Type "/nick yourname" to set a nickname and start chatting', 'system')
+			if (!nickname || needReconnect) {
+				return addMessage('Type "/nick yourname" to connect to server', 'system')
 			}
 
 			emitMessage({
 				text: e.messageText,
-				nickname
+				User
 			})
 		}
 	}
@@ -155,13 +157,23 @@ class App extends Component {
 		})
 
 		ChatConnection.on('notification', message => {
+			if (message.type === 'nicknameTaken') {
+				this.addMessage(message.text, 'system')
+				this.setState({
+					connected: false,
+					needReconnect: true
+				})
+				return this.props.stopReconnecting()
+			}
+
 			if (message.type === 'userConnected' && message.User && message.User.nickname === this.props.nickname) {
 				this.addMessage(`Welcome ${message.User.nickname}. Your ID is ${message.User.id}`, 'system')
 
 				return this.setState({
 					users: message.users,
 					User: message.User,
-					connected: true
+					connected: true,
+					needReconnect: false
 				})
 			}
 
@@ -177,18 +189,22 @@ class App extends Component {
 				})
 			}
 
-			if (message.type === 'nicknameTaken') {
-				return this.setState({
-					connected: false
-				})
-			}
-
 			this.addMessage(message.text, 'system')
 		})
 
 		ChatConnection.on('message-from-server', message => {
-			this.addMessage(message.text, message.nickname)
+			if (message.text.includes(`@${this.props.nickname}`)) {
+				notifier.notify({
+				  title: `@${message.User.nickname} mentioned you`,
+				  message: message.text,
+				})
+			}
+			this.addMessage(message.text, message.User.nickname)
 		})
+	}
+
+	componentWillUnmount() {
+		this.props.onExit()
 	}
 
 	render() {
@@ -196,17 +212,13 @@ class App extends Component {
 		const userListWidth = getUserListWidth(users)
 		const messagesWidth = this.state.maxColumns - userListWidth
 
-		const percentToRows = (total, percent) => parseInt((total / 100) * percent, 10)
-
-		// {/*<Box><Color red>Connected: {this.state.connected ? 'Yes' : 'No'} {this.state.width} {this.state.height}</Color></Box>*/}
-		// {/*<Header height={config.headerHeight} messagesWidth={messagesWidth} userListWidth={userListWidth} maxRows={maxRows}/>*/}
 		return <>
 			<Box flexDirection="column" height={safeHeight} width={safeWidth} textWrap="truncate">
 				<Box>
-					<Messages messages={messages} maxRows={maxRows} textWrap="truncate" width={messagesWidth} paddingRight={1}/>
+					<Messages messages={messages} maxRows={maxRows} height={maxRows} textWrap="truncate" width={messagesWidth} paddingRight={1}/>
 					<UserList users={users} width={userListWidth}/>
 				</Box>
-				<Box>
+				<Box marginTop={1}>
 					<Form onSubmit={this.handleFormSubmit()}>
 						{({ form, handleSubmit }) => (
 							<Box>

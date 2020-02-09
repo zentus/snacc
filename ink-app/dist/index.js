@@ -46,7 +46,8 @@ class Index extends _react.Component {
         connectToServer,
         emitMessage,
         nickname,
-        setNickname
+        setNickname,
+        stopReconnecting
       }) => {
         return _react.default.createElement(_app.default, {
           onExit: exit,
@@ -58,7 +59,8 @@ class Index extends _react.Component {
           nickname: nickname,
           ChatConnection: ChatConnection,
           forceUpdateRoot: this.forceUpdateRoot,
-          nickFlag: this.props.nickFlag
+          nickFlag: this.props.nickFlag,
+          stopReconnecting: stopReconnecting
         });
       }) : _react.default.createElement(_ink.Color, {
         white: true

@@ -27,7 +27,7 @@
 		rl.setPrompt(prefix(nickname), prefix(nickname).length)
 		rl.prompt()
 
-		peer.emit('user-connected', nickname)
+		peer.emit('user-connect', nickname)
 
 		peer.on('notification', message => {
 			if (message.type === 'userConnected' && message.user && message.user.nickname === nickname) {
