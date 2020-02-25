@@ -1,10 +1,15 @@
 {
-  "name": "tcp-chat",
+  "name": "snacc",
   "version": "0.0.0",
-  "description": "A minimal command line TCP chat server/client",
+  "description": "A minimal command line Websocket chat server/client",
   "main": "app.js",
   "scripts": {
+    "serve": "node app -s",
+    "connect": "node app -c",
     "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "snacc": "app.js"
   },
   "author": "zentus",
   "license": "MIT",
@@ -12,10 +17,20 @@
     "chalk": "^3.0.0",
     "debounce": "^1.2.0",
     "duplex-emitter": "^2.1.2",
+    "express": "^4.17.1",
     "ink": "^2.7.0",
+    "maskin": "0.0.1",
     "node-notifier": "^6.0.0",
     "react": "^16.12.0",
     "reconnect": "^2.0.2",
-    "uuid": "^3.4.0"
+    "socket.io": "^2.3.0",
+    "socket.io-client": "^2.3.0",
+    "uuid": "^3.4.0",
+    "ws": "^7.2.1",
+    "zingo": "0.0.2"
+  },
+  "optionalDependencies": {
+    "bufferutil": "^4.0.1",
+    "utf-8-validate": "^5.0.2"
   }
 }

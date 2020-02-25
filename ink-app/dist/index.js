@@ -39,8 +39,7 @@ class Index extends _react.Component {
         setRawMode,
         stdin
       }) => isRawModeSupported ? _react.default.createElement(_chatConnector.default, {
-        host: this.props.host,
-        port: this.props.port
+        options: this.props.options
       }, ({
         ChatConnection,
         connectToServer,
@@ -50,6 +49,7 @@ class Index extends _react.Component {
         stopReconnecting
       }) => {
         return _react.default.createElement(_app.default, {
+          options: this.props.options,
           onExit: exit,
           setRawMode: setRawMode,
           stdin: stdin,
@@ -59,7 +59,6 @@ class Index extends _react.Component {
           nickname: nickname,
           ChatConnection: ChatConnection,
           forceUpdateRoot: this.forceUpdateRoot,
-          nickFlag: this.props.nickFlag,
           stopReconnecting: stopReconnecting
         });
       }) : _react.default.createElement(_ink.Color, {
@@ -70,10 +69,8 @@ class Index extends _react.Component {
 
 }
 
-const startClient = (host, port, nickFlag) => (0, _ink.render)(_react.default.createElement(Index, {
-  host: host,
-  port: port,
-  nickFlag: nickFlag
+const startClient = options => (0, _ink.render)(_react.default.createElement(Index, {
+  options: options
 }));
 
 var _default = startClient;
