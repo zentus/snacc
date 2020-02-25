@@ -19,7 +19,7 @@
     "duplex-emitter": "^2.1.2",
     "express": "^4.17.1",
     "ink": "^2.7.0",
-    "maskin": "0.0.1",
+    "maskin": "0.0.2",
     "node-notifier": "^6.0.0",
     "react": "^16.12.0",
     "reconnect": "^2.0.2",
