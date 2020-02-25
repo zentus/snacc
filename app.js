@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const path = require('path')
 const net = require('net')
 const duplexEmitter = require('./duplex-emitter')
 const reconnect = require('reconnect')
@@ -117,8 +118,8 @@ if (TYPE === 'server') {
 	})
 
 	const serverOptions = {
-		key: fs.readFileSync('./certificate/server.key', 'utf8'),
-		cert: fs.readFileSync('./certificate/server.cert', 'utf8'),
+		key: fs.readFileSync(path.join(__dirname, './certificate/server.key'), 'utf8'),
+		cert: fs.readFileSync(path.join(__dirname, './certificate/server.cert'), 'utf8'),
     rejectUnauthorized: false
 	}
 
