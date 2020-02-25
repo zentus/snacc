@@ -45,7 +45,6 @@ class ChatConnector extends _react.Component {
     const port = this.props.options.port;
     const host = this.props.options.host;
     const Peer = (0, _socket.default)(`https://${host}:${port}`, {
-      // cert: require('fs').readFileSync('./certificate/server.cert', 'utf8')
       rejectUnauthorized: false
     });
     this.setState({
