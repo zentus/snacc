@@ -11,20 +11,6 @@ import config from './config'
 import debounce from 'debounce'
 import notifier from 'node-notifier'
 
-// const Sizer = props => {
-// 	if (Array.isArray(props.children) || !props.children.type) return props.children
-//
-// 	const { maxWindowWidth, maxWindowHeight, minWindowWidth, minWindowHeight, window } = props
-// 	const isWithinBounds = [
-// 		maxWindowWidth && maxWindowWidth >= window.safeWidth,
-// 		maxWindowHeight && maxWindowHeight >= window.safeHeight,
-// 		minWindowWidth && minWindowWidth < window.safeWidth,
-// 		minWindowHeight && minWindowHeight < window.safeHeight
-// 	].every(condition => condition !== false)
-//
-// 	return isWithinBounds ? props.children : <Box/>
-// }
-
 const onWindowSizeChange = callback => {
 	process.stdout.on('resize', debounce(() => {
 		callback()
@@ -34,7 +20,7 @@ const onWindowSizeChange = callback => {
 const toSafeSize = ({width, height}) => ({safeWidth: width - 1, safeHeight: height - 1})
 
 const getUserListWidth = users => {
-	const longestNicknameUser = users.sort((a, b) => a.nickname.length > b.nickname.length ? -1 : 1)[0]
+	const longestNicknameUser = [...users].sort((a, b) => a.nickname.length > b.nickname.length ? -1 : 1)[0]
 
 	return longestNicknameUser ? longestNicknameUser.nickname.length : 0
 }
@@ -74,17 +60,6 @@ class App extends Component {
 		this.addMessage = this.addMessage.bind(this)
 	}
 
-	componentDidUpdate(prevProps, prevState) {
-		// if (this.state.messages.length === prevState.messages.length) {
-		// 	this.addMessage(`dimensions: ${JSON.stringify({
-		// 		window: this.state.window,
-		// 		userListWidth: this.state.userListWidth,
-		// 		messagesWidth: this.state.messagesWidth
-		// 	})}`, 'system')
-		// }
-		//
-	}
-
 	addMessage(messageText, nickname) {
 		this.setState({
 			messageText: messageText,
@@ -96,7 +71,9 @@ class App extends Component {
 					text: messageText,
 					timestamp: (new Date).toLocaleTimeString('sv-SE')
 				}
-			].reverse().slice(0, getWindow().maxRows).reverse()
+			].reverse()
+			.slice(0, getWindow().maxRows)
+			.reverse()
 		})
 	}
 
@@ -136,24 +113,17 @@ class App extends Component {
 		}
 	}
 
-	updateUserList(nextUsers) {
-		this.setState({
-			users: nextUsers
-		})
-	}
-
 	componentDidMount() {
 		const { ChatConnection } = this.props
 
-		if (this.props.nickFlag) {
-			this.props.connectToServer(this.props.nickFlag)
+		if (this.props.options.nick) {
+			this.props.connectToServer(this.props.options.nick)
 		}
 
 		onWindowSizeChange(() => {
 			this.setState({
 				...getWindow()
 			})
-			// this.props.forceUpdateRoot();
 		})
 
 		ChatConnection.on('notification', message => {
@@ -163,21 +133,26 @@ class App extends Component {
 					connected: false,
 					needReconnect: true
 				})
-				return this.props.stopReconnecting()
+				return
 			}
 
 			if (message.type === 'userConnected' && message.User && message.User.nickname === this.props.nickname) {
-				this.addMessage(`Welcome ${message.User.nickname}. Your ID is ${message.User.id}`, 'system')
+				this.addMessage(`Welcome ${message.User.nickname}!`, 'system')
 
-				return this.setState({
+				if (this.props.options.selfHosted) {
+					this.addMessage(`You are hosting this server on https://${this.props.options.host}:${this.props.options.port}`, 'system')
+				}
+
+				this.setState({
 					users: message.users,
 					User: message.User,
 					connected: true,
 					needReconnect: false
 				})
+				return
 			}
 
-			if (message.type === 'userConnected' && message.User && message.User.nickname !== this.props.nickname) {
+			if (message.type === 'userConnected') {
 				this.setState({
 					users: message.users
 				})
@@ -200,6 +175,11 @@ class App extends Component {
 				})
 			}
 			this.addMessage(message.text, message.User.nickname)
+		})
+
+		ChatConnection.on('disconnect', username => {
+			this.addMessage('Got disconnected from the server', 'system')
+			this.props.onExit()
 		})
 	}
 

@@ -13,6 +13,8 @@ var _reconnect = _interopRequireDefault(require("reconnect"));
 
 var _events = _interopRequireDefault(require("events"));
 
+var _socket = _interopRequireDefault(require("socket.io-client"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -40,31 +42,28 @@ class ChatConnector extends _react.Component {
 
   connectToServer(nickname) {
     const ChatConnection = this.state.ChatConnection;
-    const port = this.props.port;
-    const host = this.props.host;
-    const setState = this.setState.bind(this);
-    const Reconnector = (0, _reconnect.default)(Stream => {
-      const Peer = (0, _duplexEmitter.default)(Stream);
-
-      const stopReconnecting = () => {
-        Reconnector.reconnect = false;
-      };
-
-      setState({
-        nickname,
-        Peer,
-        Stream,
-        Reconnector,
-        stopReconnecting
-      });
+    const port = this.props.options.port;
+    const host = this.props.options.host;
+    const Peer = (0, _socket.default)(`https://${host}:${port}`, {
+      // cert: require('fs').readFileSync('./certificate/server.cert', 'utf8')
+      rejectUnauthorized: false
+    });
+    this.setState({
+      nickname,
+      Peer
+    });
+    Peer.on('connect', () => {
       Peer.emit('user-connect', nickname);
-      Peer.on('notification', message => {
-        ChatConnection.emit('notification', message);
-      });
-      Peer.on('message-from-server', message => {
-        ChatConnection.emit('message-from-server', message);
-      });
-    }).connect(port, host);
+    });
+    Peer.on('disconnect', () => {
+      ChatConnection.emit('disconnect', nickname);
+    });
+    Peer.on('notification', message => {
+      ChatConnection.emit('notification', message);
+    });
+    Peer.on('message-from-server', message => {
+      ChatConnection.emit('message-from-server', message);
+    });
   }
 
   render() {
@@ -74,7 +73,7 @@ class ChatConnector extends _react.Component {
       setNickname: this.setNickname,
       nickname: this.state.nickname,
       emitMessage: this.emitMessage,
-      stopReconnecting: this.state.stopReconnecting
+      stopReconnecting: () => {}
     });
   }
 

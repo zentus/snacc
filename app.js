@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const net = require('net')
 const duplexEmitter = require('./duplex-emitter')
 const reconnect = require('reconnect')
@@ -5,9 +6,16 @@ const Readline = require('readline')
 const uuidv4 = require('uuid/v4')
 const pkg = require('./package.json')
 const chalk = require('chalk')
+const fs = require('fs')
 
-const Zingo = require('../cli-shell/lib')
-const StateMachine = require('../state-Machine/index.js')
+const express = require('express')
+const http = require('http')
+const socketIO = require('socket.io')
+const https = require('https')
+
+const Zingo = require('zingo')
+const StateMachine = require('maskin')
+const startClient = require('./ink-app/dist').default
 
 const cli = new Zingo({
 	package: pkg,
@@ -55,8 +63,12 @@ const NICK = nickOption.passed && nickOption.input
 if (!TYPE) return console.error('Pass either --serve or --connect flag')
 
 if (TYPE === 'client') {
-	const startClient = require('./ink-app/dist').default
-	return startClient(HOST, PORT, NICK)
+	return startClient({
+		host: HOST,
+		port: PORT,
+		nick: NICK,
+		selfHosted: false
+	})
 }
 
 // Server
@@ -65,107 +77,96 @@ if (TYPE === 'server') {
 		initialState: {
 			users: []
 		},
-		afterUpdate: (state, prevState) => {
-			console.log('State was updated. Next state:\n', state)
-		},
-		userConnected: (peer, nickname) => {
-			const User = Server.createUser(peer, nickname)
+		userConnected: (socket, nickname) => {
+			const User = Server.createUser(socket, nickname)
 
 			Server.setState(state => ({
-				users: [
+				users: Server.getSortedUserList([
 					...state.users,
 					User
-				]
+				])
 			}))
 
 			return User
 		},
 		userDisconnected: User => {
 			Server.setState(state => ({
-				users: state.users.filter(user => user.id !== User.id)
+				users: Server.getSortedUserList(state.users.filter(user => user.id !== User.id))
 			}))
 		},
 		createId: value => uuidv4(),
-		createUser: (peer, nickname) => ({
+		createUser: (socket, nickname) => ({
 			id: Server.createId(nickname),
 			nickname,
-			peer,
+			socket,
 			status: null
 		}),
 		broadcast: (e, payload, usersFilter) => {
 			Server.state.users
-				.filter(usersFilter ? usersFilter : u => u)
+				.filter(usersFilter ? usersFilter : Boolean)
 				.forEach(User => {
-					User.peer.emit(e, payload)
+					User.socket.emit(e, payload)
 				})
 		},
-		findUserByNickname: nickname => {
-			return Server.state.users.find(user => user.nickname === nickname)
-		},
-		getCleanUserList: users => users.map(user => ({
-			id: user.id,
-			nickname: user.nickname
-		})).sort((a, b) => a.nickname > b.nickname ? -1 : 1),
-		isJsonString: string => {
-			try {
-				const jsonParsed = JSON.parse(string)
+		findUserByNickname: nickname => Server.state.users.find(user => user.nickname === nickname),
+		getSortedUserList: users => [...users].sort((a, b) => a.nickname > b.nickname ? -1 : 1),
+		toClientSideUserList: users => users.map(user => ({
+			nickname: user.nickname,
+			id: user.id
+		}))
+	})
 
-				return Array.isArray(jsonParsed)
-			} catch (err) {
-				return false
-			}
-		},
-		waitForInitialPackage: async socket => new Promise((resolve, reject) => {
-			socket.on('data', packet => {
-				packet = packet.trim()
-				const isJson = Server.isJsonString(packet)
-				// const [dataEvent, data] = packet
-				resolve({packet, isJson})
+	const serverOptions = {
+		key: fs.readFileSync('./certificate/server.key', 'utf8'),
+		cert: fs.readFileSync('./certificate/server.cert', 'utf8'),
+    rejectUnauthorized: false
+	}
+
+	const app = express()
+	const server = https.createServer(serverOptions, app)
+	const io = socketIO(server)
+
+	server.listen(PORT, () => {
+		if (connectOption.passed) {
+			startClient({
+				host: HOST,
+				port: PORT,
+				nick: NICK,
+				selfHosted: true
 			})
-		})
+		}
 	})
 
-
-	const TCP = net.createServer()
-
-	TCP.listen(PORT)
-
-	TCP.once('listening', () => {
-		console.log('Server listening on port', PORT)
-	})
-
-	TCP.on('connection', socket => {
-		socket.setEncoding('utf-8')
+	io.on('connection', socket => {
 		let User
-		let peer = duplexEmitter(socket)
 
-		peer.on('error', e => {
+		socket.on('error', e => {
 			socket.end()
 		})
 
-		socket.on('end', () => {
+		socket.on('disconnect', () => {
 			if (!User) return false
 
 			Server.userDisconnected(User)
 			Server.broadcast('notification', {
 				text: `${User.nickname} has disconnected!`,
-				users: Server.getCleanUserList(Server.state.users),
+				users: Server.toClientSideUserList(Server.state.users),
 				type: 'userDisconnected'
 			}, user => user.id !== User.id)
 		})
 
-		peer.on('user-connect', nickname => {
+		socket.on('user-connect', nickname => {
 			const userExists = Server.findUserByNickname(nickname)
 
 			if (userExists) {
-				peer.emit('notification', {
+				socket.emit('notification', {
 					text: `The nickname "${nickname}" is already in use`,
 					type: 'nicknameTaken'
 				})
-				return socket.end()
+				return socket.disconnect(true)
 			}
 
-			User = Server.userConnected(peer, nickname)
+			User = Server.userConnected(socket, nickname)
 
 			Server.broadcast('notification', {
 				text: `${User.nickname} has connected!`,
@@ -173,21 +174,23 @@ if (TYPE === 'server') {
 					id: User.id,
 					nickname: User.nickname
 				},
-				users: Server.getCleanUserList(Server.state.users),
+				users: Server.toClientSideUserList(Server.state.users),
 				type: 'userConnected'
 			})
 		})
 
-		peer.on('message-to-server', message => {
-			if (!User || User.id !== message.User.id || User.nickname !== message.User.nickname) {
-				peer.emit('come-on-man')
-				return socket.end()
+		socket.on('message-to-server', message => {
+			if (
+				!User ||
+				( User && (User.id !== message.User.id || User.nickname !== message.User.nickname) )
+			) {
+				socket.emit('come-on-man')
+				return socket.disconnect(true)
 			}
 
 			Server.state.users.forEach(_user => {
-				_user.peer.emit('message-from-server', message)
+				_user.socket.emit('message-from-server', message)
 			})
 		})
-	// })
 	})
 }

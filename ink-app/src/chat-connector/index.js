@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import duplexEmitter from '../../../duplex-emitter'
 import reconnect from 'reconnect'
 import EventEmitter from 'events'
+import io from 'socket.io-client'
 
 class ChatConnector extends Component {
 	constructor() {
@@ -26,30 +27,31 @@ class ChatConnector extends Component {
 
 	connectToServer(nickname) {
 		const ChatConnection = this.state.ChatConnection
-		const port = this.props.port
-		const host = this.props.host
-		const setState = this.setState.bind(this)
+		const port = this.props.options.port
+		const host = this.props.options.host
 
-		const Reconnector = reconnect(Stream => {
-			const Peer = duplexEmitter(Stream)
-
-			const stopReconnecting = () => {
-				Reconnector.reconnect = false
-			}
-
-			setState({ nickname, Peer, Stream, Reconnector, stopReconnecting })
-
-			Peer.emit('user-connect', nickname)
-
-			Peer.on('notification', message => {
-				ChatConnection.emit('notification', message)
-			})
-
-			Peer.on('message-from-server', message => {
-				ChatConnection.emit('message-from-server', message)
-			})
+		const Peer = io(`https://${host}:${port}`, {
+			rejectUnauthorized: false
 		})
-		.connect(port, host)
+
+		this.setState({ nickname, Peer })
+
+		Peer.on('connect', () => {
+			Peer.emit('user-connect', nickname)
+		})
+
+		Peer.on('disconnect', () => {
+			ChatConnection.emit('disconnect', nickname)
+		})
+
+		Peer.on('notification', message => {
+			ChatConnection.emit('notification', message)
+		})
+
+		Peer.on('message-from-server', message => {
+			ChatConnection.emit('message-from-server', message)
+		})
+
 	}
 
 	render() {
@@ -59,7 +61,7 @@ class ChatConnector extends Component {
 			setNickname: this.setNickname,
 			nickname: this.state.nickname,
 			emitMessage: this.emitMessage,
-			stopReconnecting: this.state.stopReconnecting
+			stopReconnecting: () => {}
 		})
 	}
 }

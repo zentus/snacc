@@ -23,9 +23,10 @@ class Index extends Component {
 						<StdinContext.Consumer>
 							{({ isRawModeSupported, setRawMode, stdin }) =>
 								isRawModeSupported ? (
-									<ChatConnector host={this.props.host} port={this.props.port}>
+									<ChatConnector options={this.props.options}>
 										{({ChatConnection, connectToServer, emitMessage, nickname, setNickname, stopReconnecting}) => {
 											return <App
+												options={this.props.options}
 												onExit={exit}
 												setRawMode={setRawMode}
 												stdin={stdin}
@@ -35,7 +36,6 @@ class Index extends Component {
 												nickname={nickname}
 												ChatConnection={ChatConnection}
 												forceUpdateRoot={this.forceUpdateRoot}
-												nickFlag={this.props.nickFlag}
 												stopReconnecting={stopReconnecting}
 											/>
 										}}
@@ -52,6 +52,6 @@ class Index extends Component {
 	}
 }
 
-const startClient = (host, port, nickFlag) => render(<Index host={host} port={port} nickFlag={nickFlag} />)
+const startClient = (options) => render(<Index options={options} />)
 
 export default startClient
