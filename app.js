@@ -59,7 +59,16 @@ const nickOption = cli.getOption('nick')
 const configDefault = {
 	host: 'localhost',
 	port: 4808,
-	selfHosted: false
+	selfHosted: false,
+	keyPath: path.join(__dirname, './certificate/server.key'),
+	certPath: path.join(__dirname, './certificate/server.cert')
+}
+
+const envToBoolean = (env, defaultValue) => {
+	if (env === undefined) return defaultValue
+	if (env === 'true') return true
+	if (env === 'false') return false
+	return Boolean(env)
 }
 
 const config = {
@@ -69,7 +78,7 @@ const config = {
 	port: process.env.SNACC_PORT || (portOption.passed && portOption.input) || configDefault.port,
 	keyPath: process.env.SNACC_KEY_PATH && path.join(process.cwd(), process.env.SNACC_KEY_PATH),
 	certPath: process.env.SNACC_CERT_PATH && path.join(process.cwd(), process.env.SNACC_CERT_PATH),
-	rejectUnauthorized: Boolean(process.env.SNACC_REJECT_UNAUTHORIZED),
+	rejectUnauthorized: envToBoolean(process.env.SNACC_REJECT_UNAUTHORIZED),
 	nick: nickOption.passed && nickOption.input
 }
 
@@ -125,8 +134,8 @@ if (config.type === 'server') {
 	})
 
 	const serverOptions = {
-		key: fs.readFileSync(config.keyPath || path.join(__dirname, './certificate/server.key'), 'utf8'),
-		cert: fs.readFileSync(config.certPath || path.join(__dirname, './certificate/server.cert'), 'utf8'),
+		key: fs.readFileSync(config.keyPath, 'utf8'),
+		cert: fs.readFileSync(config.certPath, 'utf8'),
 		rejectUnauthorized: config.rejectUnauthorized,
 		transports: ['websocket']
 	}
