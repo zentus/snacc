@@ -127,7 +127,8 @@ if (config.type === 'server') {
 	const serverOptions = {
 		key: fs.readFileSync(config.keyPath || path.join(__dirname, './certificate/server.key'), 'utf8'),
 		cert: fs.readFileSync(config.certPath || path.join(__dirname, './certificate/server.cert'), 'utf8'),
-    rejectUnauthorized: config.rejectUnauthorized
+		rejectUnauthorized: config.rejectUnauthorized,
+		transports: ['websocket']
 	}
 
 	const app = express()
