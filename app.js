@@ -56,24 +56,31 @@ const hostOption = cli.getOption('host')
 const portOption = cli.getOption('port')
 const nickOption = cli.getOption('nick')
 
-const TYPE = (serveOption.passed && 'server') || (connectOption.passed && 'client')
-const HOST = (connectOption.passed && hostOption.passed && hostOption.input) || 'localhost'
-const PORT = (portOption.passed && portOption.input) || '5000'
-const NICK = nickOption.passed && nickOption.input
+const configDefault = {
+	host: 'localhost',
+	port: 4808,
+	selfHosted: false
+}
 
-if (!TYPE) return console.error('Pass either --serve or --connect flag')
+const config = {
+	...configDefault,
+	type: (process.env.SNACC_HOST && 'server') || (serveOption.passed && 'server') || (connectOption.passed && 'client'),
+	host: process.env.SNACC_HOST || (connectOption.passed && hostOption.passed && hostOption.input) || configDefault.host,
+	port: process.env.SNACC_PORT || (portOption.passed && portOption.input) || configDefault.port,
+	keyPath: process.env.SNACC_KEY_PATH && path.join(process.cwd(), process.env.SNACC_KEY_PATH),
+	certPath: process.env.SNACC_CERT_PATH && path.join(process.cwd(), process.env.SNACC_CERT_PATH),
+	rejectUnauthorized: Boolean(process.env.SNACC_REJECT_UNAUTHORIZED),
+	nick: nickOption.passed && nickOption.input
+}
 
-if (TYPE === 'client') {
-	return startClient({
-		host: HOST,
-		port: PORT,
-		nick: NICK,
-		selfHosted: false
-	})
+if (!config.type) return console.error('Pass either --serve or --connect flag, or SNACC_HOST environment variable')
+
+if (config.type === 'client') {
+	return startClient(config)
 }
 
 // Server
-if (TYPE === 'server') {
+if (config.type === 'server') {
 	const Server = new StateMachine({
 		initialState: {
 			users: []
@@ -118,21 +125,22 @@ if (TYPE === 'server') {
 	})
 
 	const serverOptions = {
-		key: fs.readFileSync(path.join(__dirname, './certificate/server.key'), 'utf8'),
-		cert: fs.readFileSync(path.join(__dirname, './certificate/server.cert'), 'utf8'),
-    rejectUnauthorized: false
+		key: fs.readFileSync(config.keyPath || path.join(__dirname, './certificate/server.key'), 'utf8'),
+		cert: fs.readFileSync(config.certPath || path.join(__dirname, './certificate/server.cert'), 'utf8'),
+    rejectUnauthorized: config.rejectUnauthorized
 	}
 
 	const app = express()
 	const server = https.createServer(serverOptions, app)
+
+	app.get('/version', (req, res) => res.send(pkg.version))
+
 	const io = socketIO(server)
 
-	server.listen(PORT, () => {
+	server.listen(config.port, () => {
 		if (connectOption.passed) {
 			startClient({
-				host: HOST,
-				port: PORT,
-				nick: NICK,
+				...config,
 				selfHosted: true
 			})
 		}

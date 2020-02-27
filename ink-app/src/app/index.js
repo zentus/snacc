@@ -168,12 +168,15 @@ class App extends Component {
 		})
 
 		ChatConnection.on('message-from-server', message => {
-			if (message.text.includes(`@${this.props.nickname}`)) {
+			const allowNotifications = this.state.User.registered && message.User.registered
+
+			if (allowNotifications && message.text.includes(`@${this.props.nickname}`)) {
 				notifier.notify({
 				  title: `@${message.User.nickname} mentioned you`,
 				  message: message.text,
 				})
 			}
+
 			this.addMessage(message.text, message.User.nickname)
 		})
 

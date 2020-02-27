@@ -3,6 +3,7 @@ import duplexEmitter from '../../../duplex-emitter'
 import reconnect from 'reconnect'
 import EventEmitter from 'events'
 import io from 'socket.io-client'
+import pkg from '../../../package'
 
 class ChatConnector extends Component {
 	constructor() {
@@ -31,7 +32,7 @@ class ChatConnector extends Component {
 		const host = this.props.options.host
 
 		const Peer = io(`https://${host}:${port}`, {
-			rejectUnauthorized: false
+			rejectUnauthorized: Boolean(this.props.options.rejectUnauthorized)
 		})
 
 		this.setState({ nickname, Peer })

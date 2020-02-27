@@ -15,16 +15,32 @@ function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj;
 
 function _extends() { _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; }; return _extends.apply(this, arguments); }
 
+const ui = {
+  color: {
+    guest: 'yellow',
+    registered: 'green'
+  }
+};
+
+const colorToObject = string => ({
+  [string]: true
+});
+
+const getUserColor = User => {
+  return User.registered ? colorToObject(ui.color.registered) : colorToObject(ui.color.guest);
+};
+
 const UserList = props => {
   return _react.default.createElement(_ink.Box, _extends({
     flexDirection: "column",
     alignItems: "flex-start",
     justifyContent: "flex-start"
   }, props), props.users.map(User => _react.default.createElement(_ink.Box, {
-    key: User.id
-  }, _react.default.createElement(_ink.Color, {
+    key: User.id,
+    hex: true
+  }, _react.default.createElement(_ink.Color, _extends({
     bold: true
-  }, "@", User.nickname))));
+  }, getUserColor(User)), User.registered ? '@' : '', User.nickname))));
 };
 
 var _default = UserList;

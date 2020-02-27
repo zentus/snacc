@@ -15,6 +15,8 @@ var _events = _interopRequireDefault(require("events"));
 
 var _socket = _interopRequireDefault(require("socket.io-client"));
 
+var _package = _interopRequireDefault(require("../../../package"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -45,7 +47,7 @@ class ChatConnector extends _react.Component {
     const port = this.props.options.port;
     const host = this.props.options.host;
     const Peer = (0, _socket.default)(`https://${host}:${port}`, {
-      rejectUnauthorized: false
+      rejectUnauthorized: Boolean(this.props.options.rejectUnauthorized)
     });
     this.setState({
       nickname,

@@ -13,6 +13,12 @@ var _app = _interopRequireDefault(require("./app"));
 
 var _chatConnector = _interopRequireDefault(require("./chat-connector"));
 
+var _axios = _interopRequireDefault(require("axios"));
+
+var _https = _interopRequireDefault(require("https"));
+
+var _package = _interopRequireDefault(require("../../package.json"));
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _getRequireWildcardCache() { if (typeof WeakMap !== "function") return null; var cache = new WeakMap(); _getRequireWildcardCache = function () { return cache; }; return cache; }
@@ -69,9 +75,38 @@ class Index extends _react.Component {
 
 }
 
-const startClient = options => (0, _ink.render)(_react.default.createElement(Index, {
-  options: options
-}));
+const getHostUrl = options => `https://${options.host}:${options.port}`;
+
+const startClient = async options => {
+  const endpoint = `${getHostUrl(options)}/version`;
+
+  try {
+    const response = await (0, _axios.default)(endpoint, {
+      httpsAgent: new _https.default.Agent({
+        rejectUnauthorized: options.rejectUnauthorized
+      })
+    });
+    const serverVersion = response.data;
+    const clientVersion = _package.default.version;
+    const versionsMatch = serverVersion === clientVersion;
+
+    if (versionsMatch) {
+      return (0, _ink.render)(_react.default.createElement(Index, {
+        options: options
+      }));
+    }
+
+    console.log(`
+			Version mismatch:
+			Server uses snacc ${serverVersion}
+			Client uses snacc ${clientVersion}
+			Please use the same version on both server and client`);
+  } catch (error) {
+    const status = error.response ? `${error.response.status} ${error.response.statusText}` : 'No response';
+    console.log(`Could not get server version (${endpoint}).\nStatus: ${status}`);
+    process.exit(1);
+  }
+};
 
 var _default = startClient;
 exports.default = _default;

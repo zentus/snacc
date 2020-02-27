@@ -203,7 +203,9 @@ class App extends _react.Component {
       this.addMessage(message.text, 'system');
     });
     ChatConnection.on('message-from-server', message => {
-      if (message.text.includes(`@${this.props.nickname}`)) {
+      const allowNotifications = this.state.User.registered && message.User.registered;
+
+      if (allowNotifications && message.text.includes(`@${this.props.nickname}`)) {
         _nodeNotifier.default.notify({
           title: `@${message.User.nickname} mentioned you`,
           message: message.text
