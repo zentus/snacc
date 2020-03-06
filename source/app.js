@@ -38,6 +38,7 @@ const portOption = cli.getOption('port')
 const nickOption = cli.getOption('nick')
 
 const configDefault = {
+  pkg,
   host: 'localhost',
   port: 4808,
   selfHosted: false,

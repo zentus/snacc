@@ -4,7 +4,6 @@ import App from './app'
 import ChatConnector from './chat-connector'
 import axios from 'axios'
 import https from 'https'
-import pkg from '../../package.json'
 
 class Index extends Component {
   constructor () {
@@ -69,7 +68,7 @@ const startClient = async options => {
     })
 
     const serverVersion = response.data
-    const clientVersion = pkg.version
+    const clientVersion = options.pkg.version
     const versionsMatch = serverVersion === clientVersion
 
     if (versionsMatch) {
