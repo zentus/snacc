@@ -3,3 +3,5 @@ dist
 source/ink-app/node_modules
 certificate/server.cert
 certificate/server.key
+dev-certificate/server.cert
+dev-certificate/server.key

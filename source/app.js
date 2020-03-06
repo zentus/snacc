@@ -28,7 +28,11 @@ const cli = new Zingo({
   }, {
     option: 'nick',
     shorthand: 'n'
-  }]
+  }, {
+    option: 'use-self-signed-cert'
+  }, {
+		option: 'allow-self-signed-cert'
+	}]
 })
 
 const serveOption = cli.getOption('serve')
@@ -36,14 +40,17 @@ const connectOption = cli.getOption('connect')
 const hostOption = cli.getOption('host')
 const portOption = cli.getOption('port')
 const nickOption = cli.getOption('nick')
+const devOption = cli.getOption('unsafe-dev')
+const allowSelfSignedCertOption = cli.getOption('allow-self-signed-cert')
+const useSelfSignedCertOption = cli.getOption('use-self-signed-cert')
 
 const configDefault = {
   pkg,
   host: 'localhost',
   port: 4808,
   selfHosted: false,
-  keyPath: rootPath('./certificate/server.key'),
-  certPath: rootPath('./certificate/server.cert')
+  keyPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.key') : rootPath('./certificate/server.key'),
+  certPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.cert') : rootPath('./certificate/server.cert')
 }
 
 const envToBoolean = (env, defaultValue) => {
@@ -60,7 +67,7 @@ const config = {
   port: process.env.SNACC_PORT || (portOption.passed && portOption.input) || configDefault.port,
   keyPath: (process.env.SNACC_KEY_PATH && path.join(process.cwd(), process.env.SNACC_KEY_PATH)) || configDefault.keyPath,
   certPath: (process.env.SNACC_CERT_PATH && path.join(process.cwd(), process.env.SNACC_CERT_PATH)) || configDefault.certPath,
-  rejectUnauthorized: envToBoolean(process.env.SNACC_REJECT_UNAUTHORIZED, true),
+  rejectUnauthorized: allowSelfSignedCertOption.passed ? false : envToBoolean(process.env.SNACC_REJECT_UNAUTHORIZED, true),
   nick: nickOption.passed && nickOption.input
 }
 
