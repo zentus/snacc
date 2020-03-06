@@ -1,6 +1,6 @@
 {
   "name": "snacc",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A minimal command line Websocket chat server/client",
   "main": "source/app.js",
   "scripts": {
@@ -17,8 +17,8 @@
     "prepare": "npm run build"
   },
   "files": [
-		"source/app.js",
-		"dist"
+    "source/app.js",
+    "dist"
   ],
   "bin": {
     "snacc": "source/app.js"
