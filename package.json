@@ -1,6 +1,6 @@
 {
   "name": "snacc",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "A minimal command line Websocket chat server/client",
   "main": "source/app.js",
   "scripts": {
@@ -11,11 +11,11 @@
     "lint": "eslint source",
     "lint:fix": "./lint-fix.sh",
     "test": "npm run lint",
-		"prepare": "npm run build"
+    "prepare": "npm run build"
   },
-	"files": [
-		"source"
-	],
+  "files": [
+    "source"
+  ],
   "bin": {
     "snacc": "source/app.js"
   },
