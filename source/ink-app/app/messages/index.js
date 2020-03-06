@@ -1,17 +1,16 @@
 import React from 'react'
 import { Box, Color } from 'ink'
 
-
 const Message = props => {
-	const colorProps = props.isSystem ? {
-		yellow: true
-	} : {
-		white: true
-	}
+  const colorProps = props.isSystem ? {
+    yellow: true
+  } : {
+    white: true
+  }
 
-	const nickString = props.isSystem ? '' : `${props.nickname}: `
+  const nickString = props.isSystem ? '' : `${props.nickname}: `
 
-	return <Color {...colorProps}>[{props.timestamp}] {nickString}{props.text}</Color>
+  return <Color {...colorProps}>[{props.timestamp}] {nickString}{props.text}</Color>
 }
 
 const Messages = props => {

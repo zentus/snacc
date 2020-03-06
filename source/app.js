@@ -31,8 +31,8 @@ const cli = new Zingo({
   }, {
     option: 'use-self-signed-cert'
   }, {
-		option: 'allow-self-signed-cert'
-	}]
+    option: 'allow-self-signed-cert'
+  }]
 })
 
 const serveOption = cli.getOption('serve')
@@ -40,7 +40,6 @@ const connectOption = cli.getOption('connect')
 const hostOption = cli.getOption('host')
 const portOption = cli.getOption('port')
 const nickOption = cli.getOption('nick')
-const devOption = cli.getOption('unsafe-dev')
 const allowSelfSignedCertOption = cli.getOption('allow-self-signed-cert')
 const useSelfSignedCertOption = cli.getOption('use-self-signed-cert')
 

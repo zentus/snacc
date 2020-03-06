@@ -64,7 +64,7 @@ class App extends Component {
         ...this.state.messages,
         {
           nickname: nickname,
-					isSystem: Boolean(options.isSystem),
+          isSystem: Boolean(options.isSystem),
           id: uuid(),
           text: messageText,
           timestamp: (new Date()).toLocaleTimeString('sv-SE')
@@ -114,9 +114,9 @@ class App extends Component {
   componentDidMount () {
     const { ChatConnection } = this.props
 
-		if (this.props.options.selfHosted) {
-			this.addMessage(`You are hosting this server on https://${this.props.options.host}:${this.props.options.port}`, null, { isSystem: true })
-		}
+    if (this.props.options.selfHosted) {
+      this.addMessage(`You are hosting this server on https://${this.props.options.host}:${this.props.options.port}`, null, { isSystem: true })
+    }
 
     if (this.props.options.nick) {
       this.props.connectToServer(this.props.options.nick)

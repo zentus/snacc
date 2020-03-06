@@ -14,9 +14,9 @@ class Index extends Component {
     this.forceUpdateRoot = this.forceUpdateRoot.bind(this)
   }
 
-	componentWillUnmount () {
-		process.exit()
-	}
+  componentWillUnmount () {
+    process.exit()
+  }
 
   forceUpdateRoot () {
     this.forceUpdate()
