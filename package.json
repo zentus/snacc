@@ -17,7 +17,8 @@
     "prepare": "npm run build"
   },
   "files": [
-    "source"
+		"source/app.js",
+		"dist"
   ],
   "bin": {
     "snacc": "source/app.js"
