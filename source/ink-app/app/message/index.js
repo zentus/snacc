@@ -11,10 +11,10 @@ const Message = props => {
   const nickString = props.isSystem ? '' : `${props.nickname}: `
 
   return (
-		<Box key={props.key} width={"100%"} textWrap={"truncate"}>
-			<Color {...colorProps}>[{props.timestamp}] {nickString}{props.text}</Color>
-		</Box>
-	)
+    <Box key={props.key} width={'100%'} textWrap={'truncate'}>
+      <Color {...colorProps}>[{props.timestamp}] {nickString}{props.text}</Color>
+    </Box>
+  )
 }
 
 export default Message

@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Color } from 'ink'
+import { Box } from 'ink'
 import Message from '../message'
 
 const Messages = props => {
