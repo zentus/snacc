@@ -8,6 +8,7 @@
     "connect": "node source/app -c",
 		"dev:serve": "node source/app -s --use-self-signed-cert",
     "dev:connect": "node source/app -c --allow-self-signed-cert",
+		"dev:serve:connect": "node source/app -s -c --use-self-signed-cert --allow-self-signed-cert",
 		"dev:generate:cert": "./scripts/generate-dev-keys.sh",
     "build": "babel ./source/ink-app --out-dir ./dist",
     "watch": "babel ./source/ink-app --watch --out-dir ./dist",
