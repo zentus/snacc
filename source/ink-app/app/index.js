@@ -57,13 +57,14 @@ class App extends Component {
     this.addMessage = this.addMessage.bind(this)
   }
 
-  addMessage (messageText, nickname) {
+  addMessage (messageText, nickname, options = {}) {
     this.setState({
       messageText: messageText,
       messages: [
         ...this.state.messages,
         {
-          nickname,
+          nickname: nickname,
+					isSystem: Boolean(options.isSystem),
           id: uuid(),
           text: messageText,
           timestamp: (new Date()).toLocaleTimeString('sv-SE')
@@ -93,7 +94,7 @@ class App extends Component {
       }
 
       if (!nickname || needReconnect) {
-        return addMessage('Type "/nick yourname" to connect to server', 'system')
+        return addMessage('Type "/nick yourname" to connect to server', null, { isSystem: true })
       }
 
       emitMessage({
@@ -125,7 +126,7 @@ class App extends Component {
 
     ChatConnection.on('notification', message => {
       if (message.type === 'nicknameTaken') {
-        this.addMessage(message.text, 'system')
+        this.addMessage(message.text, null, { isSystem: true })
         this.setState({
           connected: false,
           needReconnect: true
@@ -134,10 +135,10 @@ class App extends Component {
       }
 
       if (message.type === 'userConnected' && message.User && message.User.nickname === this.props.nickname) {
-        this.addMessage(`Welcome ${message.User.nickname}!`, 'system')
+        this.addMessage(`Welcome ${message.User.nickname}!`, null, { isSystem: true })
 
         if (this.props.options.selfHosted) {
-          this.addMessage(`You are hosting this server on https://${this.props.options.host}:${this.props.options.port}`, 'system')
+          this.addMessage(`You are hosting this server on https://${this.props.options.host}:${this.props.options.port}`, null, { isSystem: true })
         }
 
         this.setState({
@@ -160,8 +161,6 @@ class App extends Component {
           users: message.users
         })
       }
-
-      this.addMessage(message.text, 'system')
     })
 
     ChatConnection.on('message-from-server', message => {
@@ -178,7 +177,7 @@ class App extends Component {
     })
 
     ChatConnection.on('disconnect', username => {
-      this.addMessage('Got disconnected from the server', 'system')
+      this.addMessage('Got disconnected from the server', null, { isSystem: true })
       this.props.onExit()
     })
   }
