@@ -14,6 +14,8 @@ echo "* Installing" &&
 npm install &&
 echo "* Linting" &&
 npm run lint &&
+echo "* Building" &&
+npm run build &&
 echo "* Releasing ${tag}" &&
 set-tag &&
 push-code
