@@ -13,27 +13,39 @@ const rootPath = partialPath => path.resolve(__dirname, '..', partialPath)
 
 const cli = new Zingo({
   package: pkg,
+	usage: '[options]',
   options: [{
     option: 'serve',
-    shorthand: 's'
+    shorthand: 's',
+		description: 'Start server'
   }, {
     option: 'connect',
-    shorthand: 'c'
+    shorthand: 'c',
+		description: 'Start client'
   }, {
     option: 'host',
-    shorthand: 'hs'
+    shorthand: 'hs',
+		description: 'Set host (default: localhost)'
   }, {
     option: 'port',
-    shorthand: 'p'
+    shorthand: 'p',
+		description: 'Set port (default: 4808)'
   }, {
     option: 'nick',
-    shorthand: 'n'
+    shorthand: 'n',
+		description: 'Set nickname'
   }, {
-    option: 'use-self-signed-cert'
+    option: 'use-self-signed-cert',
+		shorthand: 'ussc',
+		description: 'Use dev self signed certificate (as server)'
   }, {
-    option: 'allow-self-signed-cert'
+    option: 'allow-self-signed-cert',
+		shorthand: 'assc',
+		description: 'Allow self signed certificate (as client)'
   }]
 })
+
+cli.start()
 
 const serveOption = cli.getOption('serve')
 const connectOption = cli.getOption('connect')
