@@ -4,7 +4,7 @@
   "description": "A minimal command line Websocket chat server/client",
   "main": "source/app.js",
   "scripts": {
-		"app": "node source/app",
+    "app": "node source/app",
     "serve": "node source/app -s",
     "connect": "node source/app -c",
     "dev:serve": "node source/app -s --use-self-signed-cert",
