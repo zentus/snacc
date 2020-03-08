@@ -1,7 +1,7 @@
 module.exports = {
   apps: [{
     name: 'snacc-server',
-    script: './source/app.js',
+    script: './dist/app.js',
     args: [
       '-s'
     ],
