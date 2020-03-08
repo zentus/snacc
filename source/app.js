@@ -1,14 +1,15 @@
 #!/usr/bin/env node
-const path = require('path')
-const uuidv4 = require('uuid/v4')
-const pkg = require('../package.json')
-const fs = require('fs')
-const express = require('express')
-const socketIO = require('socket.io')
-const https = require('https')
-const Zingo = require('zingo')
-const StateMachine = require('maskin')
-const { validateNickname } = require('./utils')
+import path from 'path'
+import uuidv4 from 'uuid/v4'
+import pkg from '../package.json'
+import fs from 'fs'
+import express from 'express'
+import socketIO from 'socket.io'
+import https from 'https'
+import Zingo from 'zingo'
+import StateMachine from 'maskin'
+import { validateNickname } from './utils'
+import startClient from './ink-app'
 
 const rootPath = partialPath => path.resolve(__dirname, '..', partialPath)
 
@@ -91,7 +92,6 @@ const Snacc = {
     }
 
     if (config.type === 'client') {
-      const startClient = require('../dist').default
       return startClient(config)
     }
 
@@ -156,7 +156,6 @@ const Snacc = {
 
       server.listen(config.port, () => {
         if (connectOption.passed) {
-          const startClient = require('../dist').default
           startClient({
             ...config,
             selfHosted: true

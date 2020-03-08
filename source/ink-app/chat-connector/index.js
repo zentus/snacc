@@ -1,7 +1,7 @@
 import { Component } from 'react'
 import EventEmitter from 'events'
 import io from 'socket.io-client'
-const { validateNickname } = require('../../source/utils')
+import { validateNickname } from '../../utils'
 
 class ChatConnector extends Component {
   constructor () {
