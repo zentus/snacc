@@ -74,7 +74,7 @@ const envToBoolean = (env, defaultValue) => {
 
 const config = {
   ...configDefault,
-  type: (serveOption.passed && 'server') || (connectOption.passed && 'client'),
+  type: ((process.env.SNACC_HOST || serveOption.passed) && 'server') || (connectOption.passed && 'client'),
   host: process.env.SNACC_HOST || (connectOption.passed && hostOption.passed && hostOption.input) || configDefault.host,
   port: process.env.SNACC_PORT || (portOption.passed && portOption.input) || configDefault.port,
   keyPath: (process.env.SNACC_KEY_PATH && path.join(process.cwd(), process.env.SNACC_KEY_PATH)) || configDefault.keyPath,
