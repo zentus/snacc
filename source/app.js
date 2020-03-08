@@ -8,6 +8,7 @@ const socketIO = require('socket.io')
 const https = require('https')
 const Zingo = require('zingo')
 const StateMachine = require('maskin')
+const { validateNickname } = require('./utils')
 
 const rootPath = partialPath => path.resolve(__dirname, '..', partialPath)
 
@@ -73,7 +74,7 @@ const envToBoolean = (env, defaultValue) => {
 
 const config = {
   ...configDefault,
-  type: (process.env.SNACC_HOST && 'server') || (serveOption.passed && 'server') || (connectOption.passed && 'client'),
+  type: (serveOption.passed && 'server') || (connectOption.passed && 'client'),
   host: process.env.SNACC_HOST || (connectOption.passed && hostOption.passed && hostOption.input) || configDefault.host,
   port: process.env.SNACC_PORT || (portOption.passed && portOption.input) || configDefault.port,
   keyPath: (process.env.SNACC_KEY_PATH && path.join(process.cwd(), process.env.SNACC_KEY_PATH)) || configDefault.keyPath,
@@ -84,7 +85,10 @@ const config = {
 
 const Snacc = {
   run: () => {
-    if (!config.type) return console.error('Pass either --serve or --connect flag, or SNACC_HOST environment variable')
+    if (!config.type) {
+      console.error('Pass either --serve or --connect flag')
+      return process.exit(1)
+    }
 
     if (config.type === 'client') {
       const startClient = require('../dist').default
@@ -180,10 +184,13 @@ const Snacc = {
 
         socket.on('user-connect', nickname => {
           const userExists = Server.findUserByNickname(nickname)
+          const nicknameIsValid = validateNickname(nickname)
 
-          if (userExists) {
+          if (userExists || !nicknameIsValid) {
+            const reason = userExists ? 'already in use' : 'invalid'
+
             socket.emit('notification', {
-              text: `The nickname "${nickname}" is already in use`,
+              text: `The nickname "${nickname}" is ${reason}`,
               type: 'nicknameTaken'
             })
             return socket.disconnect(true)

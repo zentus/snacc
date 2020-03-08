@@ -129,7 +129,7 @@ class App extends Component {
     })
 
     ChatConnection.on('notification', message => {
-      if (message.type === 'nicknameTaken') {
+      if (message.type === 'invalidNickname' || message.type === 'nicknameTaken') {
         this.addMessage(message.text, null, { isSystem: true })
         this.setState({
           connected: false,

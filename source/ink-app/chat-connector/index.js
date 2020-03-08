@@ -1,6 +1,7 @@
 import { Component } from 'react'
 import EventEmitter from 'events'
 import io from 'socket.io-client'
+const { validateNickname } = require('../../source/utils')
 
 class ChatConnector extends Component {
   constructor () {
@@ -25,6 +26,15 @@ class ChatConnector extends Component {
 
   connectToServer (nickname) {
     const ChatConnection = this.state.ChatConnection
+    const nicknameIsValid = validateNickname(nickname)
+
+    if (!nicknameIsValid) {
+      return ChatConnection.emit('notification', {
+        type: 'invalidNickname',
+        text: `Nickname "${nickname}" is invalid`
+      })
+    }
+
     const port = this.props.options.port
     const host = this.props.options.host
 
@@ -55,10 +65,8 @@ class ChatConnector extends Component {
     return this.props.children({
       ChatConnection: this.state.ChatConnection,
       connectToServer: this.connectToServer,
-      setNickname: this.setNickname,
       nickname: this.state.nickname,
-      emitMessage: this.emitMessage,
-      stopReconnecting: () => {}
+      emitMessage: this.emitMessage
     })
   }
 }
