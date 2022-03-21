@@ -38,7 +38,7 @@ class ChatConnector extends Component {
     const port = this.props.options.port
     const host = this.props.options.host
 
-    const Peer = io(`https://${host}:${port}`, {
+    const Peer = io(`http://${host}:${port}`, {
       rejectUnauthorized: Boolean(this.props.options.rejectUnauthorized)
     })
 

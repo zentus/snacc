@@ -115,7 +115,7 @@ class App extends Component {
     const { ChatConnection } = this.props
 
     if (this.props.options.selfHosted) {
-      this.addMessage(`You are hosting this server on https://${this.props.options.host}:${this.props.options.port}`, null, { isSystem: true })
+      this.addMessage(`You are hosting this server on http://${this.props.options.host}:${this.props.options.port}`, null, { isSystem: true })
     }
 
     if (this.props.options.nick) {

@@ -5,7 +5,7 @@ import pkg from '../package.json'
 import fs from 'fs'
 import express from 'express'
 import socketIO from 'socket.io'
-import https from 'https'
+import http from 'http'
 import Zingo from 'zingo'
 import StateMachine from 'maskin'
 import { validateNickname } from './utils'
@@ -55,15 +55,15 @@ const hostOption = cli.getOption('host')
 const portOption = cli.getOption('port')
 const nickOption = cli.getOption('nick')
 const allowSelfSignedCertOption = cli.getOption('allow-self-signed-cert')
-const useSelfSignedCertOption = cli.getOption('use-self-signed-cert')
+// const useSelfSignedCertOption = cli.getOption('use-self-signed-cert')
 
 const configDefault = {
   pkg,
   host: 'localhost',
   port: 4808,
-  selfHosted: false,
-  keyPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.key') : rootPath('./certificate/server.key'),
-  certPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.cert') : rootPath('./certificate/server.cert')
+  selfHosted: false
+  // keyPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.key') : rootPath('./certificate/server.key'),
+  // certPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.cert') : rootPath('./certificate/server.cert')
 }
 
 const envToBoolean = (env, defaultValue) => {
@@ -141,14 +141,14 @@ const Snacc = {
       })
 
       const serverOptions = {
-        key: fs.readFileSync(config.keyPath, 'utf8'),
-        cert: fs.readFileSync(config.certPath, 'utf8'),
-        rejectUnauthorized: config.rejectUnauthorized,
+        // key: fs.readFileSync(config.keyPath, 'utf8'),
+        // cert: fs.readFileSync(config.certPath, 'utf8'),
+        // rejectUnauthorized: config.rejectUnauthorized,
         transports: ['websocket']
       }
 
       const app = express()
-      const server = https.createServer(serverOptions, app)
+      const server = http.createServer(serverOptions, app)
 
       app.get('/version', (req, res) => res.send(pkg.version))
 
