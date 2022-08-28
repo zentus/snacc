@@ -1,6 +1,6 @@
 {
   "name": "snacc",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "A minimal command line Websocket chat server/client",
   "main": "dist/app.js",
   "scripts": {
