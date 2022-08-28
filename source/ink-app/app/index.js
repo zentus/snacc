@@ -151,12 +151,16 @@ class App extends Component {
       }
 
       if (message.type === 'userConnected') {
+        this.addMessage(message.text, null, { isSystem: true })
+
         this.setState({
           users: message.users
         })
       }
 
       if (message.type === 'userDisconnected') {
+        this.addMessage(message.text, null, { isSystem: true })
+
         this.setState({
           users: message.users
         })

@@ -145,7 +145,7 @@ const Snacc = {
 
           Server.userDisconnected(User)
           Server.broadcast('notification', {
-            text: `${User.nickname} has disconnected!`,
+            text: `${User.nickname} disconnected!`,
             users: Server.toClientSideUserList(Server.state.users),
             type: 'userDisconnected'
           }, user => user.id !== User.id)
@@ -168,7 +168,7 @@ const Snacc = {
           User = Server.userConnected(socket, nickname)
 
           Server.broadcast('notification', {
-            text: `${User.nickname} has connected!`,
+            text: `${User.nickname} connected!`,
             User: {
               id: User.id,
               nickname: User.nickname
