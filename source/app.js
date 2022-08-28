@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import path from 'path'
 import uuidv4 from 'uuid/v4'
 import pkg from '../package.json'
 import fs from 'fs'
@@ -10,8 +9,6 @@ import Zingo from 'zingo'
 import StateMachine from 'maskin'
 import { validateNickname } from './utils'
 import startClient from './ink-app'
-
-const rootPath = partialPath => path.resolve(__dirname, '..', partialPath)
 
 const cli = new Zingo({
   package: pkg,
@@ -54,23 +51,16 @@ const connectOption = cli.getOption('connect')
 const hostOption = cli.getOption('host')
 const portOption = cli.getOption('port')
 const nickOption = cli.getOption('nick')
-const allowSelfSignedCertOption = cli.getOption('allow-self-signed-cert')
-// const useSelfSignedCertOption = cli.getOption('use-self-signed-cert')
+const keyPathOption = cli.getOption('key')
+const certPathOption = cli.getOption('cert')
 
 const configDefault = {
   pkg,
   host: 'localhost',
   port: 4808,
-  selfHosted: false
-  // keyPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.key') : rootPath('./certificate/server.key'),
-  // certPath: useSelfSignedCertOption.passed ? rootPath('./dev-certificate/server.cert') : rootPath('./certificate/server.cert')
-}
-
-const envToBoolean = (env, defaultValue) => {
-  if (env === undefined) return defaultValue
-  if (env === 'true') return true
-  if (env === 'false') return false
-  return Boolean(env)
+  selfHosted: false,
+  keyPath: keyPathOption,
+  certPath: certPathOption
 }
 
 const config = {
@@ -78,9 +68,9 @@ const config = {
   type: ((process.env.SNACC_HOST || serveOption.passed) && 'server') || (connectOption.passed && 'client'),
   host: process.env.SNACC_HOST || (connectOption.passed && hostOption.passed && hostOption.input) || configDefault.host,
   port: process.env.SNACC_PORT || (portOption.passed && portOption.input) || configDefault.port,
-  keyPath: (process.env.SNACC_KEY_PATH && path.join(process.cwd(), process.env.SNACC_KEY_PATH)) || configDefault.keyPath,
-  certPath: (process.env.SNACC_CERT_PATH && path.join(process.cwd(), process.env.SNACC_CERT_PATH)) || configDefault.certPath,
-  rejectUnauthorized: allowSelfSignedCertOption.passed ? false : envToBoolean(process.env.SNACC_REJECT_UNAUTHORIZED, true),
+  keyPath: configDefault.keyPath,
+  certPath: configDefault.certPath,
+  rejectUnauthorized: true,
   nick: nickOption.passed && nickOption.input
 }
 
@@ -141,9 +131,9 @@ const Snacc = {
       })
 
       const serverOptions = {
-        // key: fs.readFileSync(config.keyPath, 'utf8'),
-        // cert: fs.readFileSync(config.certPath, 'utf8'),
-        // rejectUnauthorized: config.rejectUnauthorized,
+        key: fs.readFileSync(config.keyPath, 'utf8'),
+        cert: fs.readFileSync(config.certPath, 'utf8'),
+        rejectUnauthorized: config.rejectUnauthorized,
         transports: ['websocket']
       }
 
