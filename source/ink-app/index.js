@@ -3,7 +3,6 @@ import { AppContext, StdinContext, Color, render } from 'ink'
 import App from './app'
 import ChatConnector from './chat-connector'
 import axios from 'axios'
-// import https from 'https'
 
 class Index extends Component {
   constructor () {
@@ -59,17 +58,11 @@ class Index extends Component {
   }
 }
 
-const getHostUrl = options => `http://${options.host}:${options.port}`
-
 const startClient = async options => {
-  const endpoint = `${getHostUrl(options)}/version`
+  const endpoint = `${options.host}/version`
 
   try {
-    const response = await axios(endpoint, {
-      // httpsAgent: new https.Agent({
-      //   rejectUnauthorized: options.rejectUnauthorized
-      // })
-    })
+    const response = await axios(endpoint)
 
     const serverVersion = response.data
     const clientVersion = options.pkg.version
