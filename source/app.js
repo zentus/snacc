@@ -58,6 +58,8 @@ const config = {
   nick: nickOption.passed && nickOption.input
 }
 
+console.log({ config })
+
 const Snacc = {
   run: () => {
     if (!config.type) {

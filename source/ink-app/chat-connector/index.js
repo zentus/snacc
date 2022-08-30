@@ -38,7 +38,7 @@ class ChatConnector extends Component {
     const host = this.props.options.host
 
     const Peer = io(host, {
-      rejectUnauthorized: Boolean(host.startsWith('https'))
+      // rejectUnauthorized: Boolean(host.startsWith('https'))
     })
 
     this.setState({ nickname, Peer })
