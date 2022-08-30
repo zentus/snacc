@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react'
+import MessageBox from './components/message-box'
+import Messages from './components/messages'
+import UserConnect from './components/user-connect'
 
-function App(props) {
+const App = props => {
   const [nickname, setNickname] = useState('')
   const [message, setMessage] = useState('')
   const [connected, setConnected] = useState(false)
@@ -29,33 +32,25 @@ function App(props) {
 
   return (
     <div className="App">
-      {!connected && <>
-        <input type="text" value={nickname} onChange={e => setNickname(e.target.value)} placeholder='Nickname'/>
-        <button onClick={handleConnect}>Connect</button>
-      </>}
-      <div className="messages" ref={messagesRef}>
-        <div className="message-before"/>
-        {props.chat.messages.map(message => (
-          <div className="message" key={message.timestamp + message.User.id}>
-            <div>
-              <div className="message-avatar"/>
-            </div>
-            <div className="message-content">
-              <div className="message-content-nickname"><strong>{message.User.nickname}</strong> {new Date(message.timestamp).toLocaleTimeString()}</div>
-              <div>{message.text}</div>
-            </div>
-          </div>
-        ))}
-      </div>
+      {!connected && <UserConnect
+        nickname={nickname}
+        setNickname={setNickname}
+        handleConnect={handleConnect}
+      />}
       {connected && (
-        <div className="message-box">
-          <div>
-            <textarea value={message} onChange={e => !isSendingMessage && setMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} onKeyUp={e => e.key === 'Enter' && setIsSendingMessage(false)}/>
-          </div>
-          <div className="button-container" onClick={() => handleSendMessage() || setIsSendingMessage(false)}>
-            <div className="button"/>
-          </div>
-        </div>
+        <>
+          <Messages
+            messages={props.chat.messages}
+            messagesRef={messagesRef}
+          />
+          <MessageBox 
+            message={message}
+            isSendingMessage={isSendingMessage}
+            setMessage={setMessage}
+            handleSendMessage={handleSendMessage}
+            setIsSendingMessage={setIsSendingMessage}
+          />
+        </>
       )}
     </div>
   );

@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
-import ChatConnector from './chat-connector'
+import ChatConnector from './components/chat-connector'
 
 const options = {
   host: 'https://snacc.polare.org'
