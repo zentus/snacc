@@ -134,6 +134,7 @@ const Snacc = {
       })
 
       io.on('connection', socket => {
+        console.log('connection', Server.state.users)
         let User
 
         socket.on('error', e => {
@@ -179,6 +180,7 @@ const Snacc = {
         })
 
         socket.on('message-to-server', message => {
+          console.log('message-to-server', { message })
           const validUser = typeof User === 'object'
           const validId = User && message && message.User && User.id === message.User.id
           const validNickname = User && message && message.User && User.nickname === message.User.nickname
