@@ -8,6 +8,7 @@ import Zingo from 'zingo'
 import StateMachine from 'maskin'
 import { validateNickname } from './utils'
 import startClient from './ink-app'
+import path from 'path'
 
 const cli = new Zingo({
   package: pkg,
@@ -121,7 +122,7 @@ const Snacc = {
         transports: ['websocket']
       }, app)
 
-      app.get('/', (req, res) => res.sendStatus(200))
+      app.use(express.static(path.join(__dirname, '../web-app/build')))
       app.get('/version', (req, res) => res.send(pkg.version))
 
       const io = socketIO(server)
