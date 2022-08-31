@@ -16,13 +16,48 @@ html, body {
 
 body {
   color: white;
-  background: rgb(22, 22, 22);
+  background: #161616;
+}
+
+#root {
+  display: flex;
+  flex-direction: row;
+}
+
+main {
+  height: 100vh;
+  width: 97vw;
+}
+
+nav {
+  width: 3vw;
+  user-select: none;
+}
+
+
+.menu-icon {
+  padding-top: 2vh;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+}
+
+.menu-content {
+  padding-top: 2vh;
+}
+
+.user-list-user {
+  padding: 1vw;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  font-size: 1.2rem;
 }
 
 .user-connect {
   display: flex;
-  height: 100vh;
-  width: 100vw;
+  height: 100%;
+  width: 100%;
   align-items: center;
   justify-content: center;
   flex-direction: column;
@@ -41,7 +76,7 @@ body {
 }
 
 .user-connect button {
-  background: coral;
+  background: #ff7f50;
   color: #fff;
   cursor: pointer;
 }

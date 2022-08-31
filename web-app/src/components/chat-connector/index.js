@@ -72,7 +72,11 @@ class ChatConnector extends Component {
           User: message.User,
           connected: true
         })
-      }
+      } else if (message.type === 'userConnected' || message.type === 'userDisconnected' ) {
+        this.setState({
+          users: message.users
+        })
+      } 
     })
 
     Peer.on('message-from-server', message => {

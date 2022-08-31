@@ -2,12 +2,16 @@ import { useState, useRef, useEffect } from 'react'
 import MessageBox from './components/message-box'
 import Messages from './components/messages'
 import UserConnect from './components/user-connect'
+import Nav from './components/nav'
+import getIsMobile from 'is-mobile'
 
 const App = props => {
   const [nickname, setNickname] = useState('')
   const [message, setMessage] = useState('')
   const [connected, setConnected] = useState(false)
   const [isSendingMessage, setIsSendingMessage] = useState(false)
+  const [menuIsOpen, setMenuIsOpen] = useState(false)
+  const isMobile = getIsMobile()
 
   const messagesRef = useRef()
 
@@ -31,28 +35,36 @@ const App = props => {
   }
 
   return (
-    <div className="App">
-      {!connected && <UserConnect
-        nickname={nickname}
-        setNickname={setNickname}
-        handleConnect={handleConnect}
+    <>
+      <main style={menuIsOpen && isMobile ? {display: 'none'} : {}}>
+        {!connected && <UserConnect
+          nickname={nickname}
+          setNickname={setNickname}
+          handleConnect={handleConnect}
+        />}
+        {connected && (
+          <>
+            <Messages
+              messages={props.chat.messages}
+              messagesRef={messagesRef}
+            />
+            <MessageBox 
+              message={message}
+              isSendingMessage={isSendingMessage}
+              setMessage={setMessage}
+              handleSendMessage={handleSendMessage}
+              setIsSendingMessage={setIsSendingMessage}
+            />
+          </>
+        )}
+      </main>
+      {connected && <Nav
+        chat={props.chat}
+        menuIsOpen={menuIsOpen}
+        setMenuIsOpen={setMenuIsOpen}
+        isMobile={isMobile}
       />}
-      {connected && (
-        <>
-          <Messages
-            messages={props.chat.messages}
-            messagesRef={messagesRef}
-          />
-          <MessageBox 
-            message={message}
-            isSendingMessage={isSendingMessage}
-            setMessage={setMessage}
-            handleSendMessage={handleSendMessage}
-            setIsSendingMessage={setIsSendingMessage}
-          />
-        </>
-      )}
-    </div>
+    </>
   );
 }
 
